@@ -1,0 +1,79 @@
+---
+sidebar_position: 2
+---
+
+# The ActivChart component
+
+## The main dimensions
+
+![The ActivChart geometry](/img/activities_geom.png)
+
+We will define the main dimensions as follows :
+
+- `hist_h` = the height of the histogram = the height of the selected rectangle
+- `hist_h_kilo` = the height of the highest bar of kilos, that is `dep` pixels lower than `hist_h`. The highest bar of the calories will be `cal_dep` pixels higher.
+- There are margins around the histogram :
+  - `hist_top`, `hist_bottom`, `hist_left` and `hist_right`.
+- There is an horizontal padding of `deb` pixels which is also the overflow of selection rectangle.
+- Each bar will be 7 pixels wide with a gap of 8 pixels, so the bars will take 22 pixels and the selection rectangle will be 22 + 17\*2 = 56 pixels wide.
+
+```javascript
+const dep = 50; // vertical overflow in px of the selection rectangle in relation to the max kilo
+const cal_dep = 25; // vertical overflow in px of the calo.max rectangle in relation to kilo.max
+const deb = 17; //horizontal padding in px of the selection rectangle in relation to the max kilo
+const hist_top = 112.5 - dep;
+const hist_bottom = 62.5;
+const hist_left = 43 - deb;
+const hist_right = 90 - deb;
+const hist_w = ref.current.clientWidth - (hist_right + hist_left);
+const hist_h = ref.current.clientHeight - (hist_bottom + hist_top);
+const hist_h_kilo = hist_h - dep;
+const nbEl = activities.length;
+const w = (hist_w - deb * 2 - 22) / (nbEl - 1); // The distance between two consecutive bars of kilos.
+```
+
+## Scaling
+
+```javascript
+ActiveChart.rangeKilo = getRange(activities, "kilogram");
+ActiveChart.rangeCalo = getRange(activities, "calories");
+const kilo_hscale = hist_h_kilo / (rangeKilo.max - rangeKilo.min + 1);
+const calo_hscale = (hist_h_kilo + cal_dep) / rangeCalo.max;
+```
+
+If `rangeKilo.min` = 76 kg and `rangeKilo.max` = 81 kg, we will represent the kilos on a range of 81 - 76 + 1 = 6 kg, starting from `rangeKilo.min` - 1 = 75 kg to 75 + 6 = 81 kg
+
+The height of a bar representing 80 kg will be `kilo_hscale * (80 - 76 + 1)`. More generally the height of a bar representing `d.kilogram` will be `kilo_hscale * (d.kilogram - rangeKilo.min + 1)`, while the
+height of a bar representing `d.calories` will be `calo_hscale * d.calories` because the calories are represented on the full range.
+
+## Showing the selection rectangle and the tooltip
+
+To avoid flickering, we first draw hidden 'background' gray selection rectangles, then we draw the histogram bars and finally we draw
+over the 'background' gray rectangles the hidden rectangles of the same size that will accept mouse events. When the mouse is going to enter
+a hidden 'foreground' selection rectangle, the 'background' corresponding gray rectangle will be made visible.
+
+### Getting the correct corresponding 'background' gray rectangle
+
+When entering a selection rectangle, **d3** allows us to access to the data associated to that rectangle. But we also
+want to access to the 'background' corresponding gray rectangle. For this reason we added a field `count` to each data to index them.
+
+```javascript
+// we add a count field to the data that will be used to know to what day each data refers to
+activities = activities.map((e, i) => {
+  e.count = i;
+  return e;
+});
+```
+
+When the selection rectangles were created, they were assigned an `id` as follows :
+
+```javascript
+.attr('id', (d, i) => `sel-${i}`)
+```
+
+that allows us to select them using this `id` recreated from the retrieved `count` value of the data
+as follows :
+
+```javascript
+const rect = d3.select(`#sel-${d.count}`);
+```
