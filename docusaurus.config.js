@@ -17,7 +17,7 @@ const config = {
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: "sviosdi", // Usually your GitHub org/user name.
-  projectName: "P12", // Usually your repo name.
+  projectName: "docP12", // Usually your repo name.
 
   // Even if you don't use internalization, you can use this field to set useful
   // metadata like html lang. For example, if your site is Chinese, you may want
@@ -36,13 +36,7 @@ const config = {
           sidebarPath: require.resolve("./sidebars.js"),
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl: "https://github.com/sviosdi/docP12",
-        },
-        blog: {
-          showReadingTime: true,
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl: "https://github.com/sviosdi/docP12",
+          // editUrl: "https://github.com/sviosdi/docP12",
         },
         theme: {
           customCss: require.resolve("./src/css/custom.css"),

@@ -3,3 +3,101 @@ sidebar_position: 4
 ---
 
 # The RadarChart component
+
+![The RadarChart](/img/RadarChart.png)
+
+## Drawing the radar grid
+
+### Calculation of the coordinates of the vertices of the reference polygon
+
+We imagine a polygon centered on the component and whose vertices are on the trigonometric circle. The array `RadarChart.radarGridPointsRef` of the coordinates of
+these vertices will be used for the calculations of all the other coordinates by multiplying these coordinates by a scale ratio. These coordinates will be
+calculated only once in the `useEffect()` hook when the component is mounted.
+
+![The RadarChart reference grid](/img/chart.png)
+
+```javascript
+for (let i = 0; i < N; i++) {
+  // Calculate the coordinates of the vertices of the polygon on the trigonometric circle
+  const ang = Math.PI / N;
+  RadarChart.radarGridPointsRef.push({
+    x: Math.cos((i * Math.PI * 2) / N + ang),
+    y: Math.sin((i * Math.PI * 2) / N + ang),
+  });
+}
+```
+
+### Drawing one line of the RadarChart grid
+
+The function `radarGridLine(w)` will draw one line of the RadarChart grid for a radius value of `w` pixels
+after converting all coordinates from `radarGridPointsRef` to coordinates in the frame formed by the axes :
+upper-left corner to the right and upper-left corner to the bottom.
+
+```javascript
+const radarGridLine = (w) => {
+  return `
+            ${RadarChart.radarGridPointsRef.reduce(
+              (prev, curr, idx) =>
+                `${prev + (idx === 0 ? "M" : "L")}${radarW / 2 + w * curr.x},${
+                  radarW / 2 - w * curr.y
+                }`,
+              ""
+            )}Z`;
+};
+```
+
+### Drawing the RadarChart grid
+
+```javascript
+const padding = 0.19 * radarW // radarW = component's width
+const Rmax = radarW / 2 - padding
+
+...
+
+const rayons = [Rmax / 8, Rmax / 4, Rmax / 2, Rmax * 0.75, Rmax]
+rayons.forEach((r) =>
+  grid
+    .append("path")
+    .attr("class", "radar-grid-line")
+    .attr("fill", "none")
+    .attr("d", radarGridLine(r))
+);
+```
+
+### Drawing the polygon representing the performances values
+
+We will first fill the array `radarLinePointsRef` holding the coordinates of the vertices of the
+polygon representing the performances values. These coordinates are in pixels in the frame centered
+on the component. Next, the `radarLine()` will draw the polygon after converting all coordinates from
+`radarLinePointsRef` to coordinates in the frame formed by the axes : upper-left corner to the right
+and upper-left corner to the bottom.
+
+```javascript
+let radarLinePointsRef = [];
+const coeff_scale = 0.9 * (Rmax / performancesRange.max);
+
+for (let i = 0; i < N; i++) {
+  // starting_index = index in the data array whose data value is to assign to
+  // point 0 in the reference polygon
+  // starting index = 4 => the value on the point 0 radius will be 'speed'
+  const index = (i + starting_index) % N;
+  // compute the distance in pixels from center of polygon to the current point
+  const val = coeff_scale * performances[index].value;
+  // push the coordinates in pixels of the point on the value polygon
+  // (in the frame centered on the component)
+  radarLinePointsRef.push({
+    x: val * RadarChart.radarGridPointsRef[i].x,
+    y: val * RadarChart.radarGridPointsRef[i].y,
+  });
+}
+
+const radarLine = () => {
+  return `${radarLinePointsRef.reduce(
+    (prev, curr, idx) =>
+      `${prev + (idx === 0 ? "M" : "L")}${radarW / 2 + curr.x},${
+        radarW / 2 - curr.y
+      }`,
+    ""
+  )}Z`;
+};
+```
