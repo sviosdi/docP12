@@ -36,13 +36,13 @@ const config = {
           sidebarPath: require.resolve("./sidebars.js"),
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl: "https://github.com/sviosdi/P12",
+          editUrl: "https://github.com/sviosdi/docP12",
         },
         blog: {
           showReadingTime: true,
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl: "https://github.com/sviosdi/P12",
+          editUrl: "https://github.com/sviosdi/docP12",
         },
         theme: {
           customCss: require.resolve("./src/css/custom.css"),
@@ -91,7 +91,7 @@ const config = {
             ],
           },
           {
-            title: "Technology",
+            title: "Technologies",
             items: [
               {
                 label: "d3js",
@@ -115,8 +115,12 @@ const config = {
             title: "More",
             items: [
               {
-                label: "GitHub",
+                label: "Project's GitHub",
                 href: "https://github.com/sviosdi/P12",
+              },
+              {
+                label: "Doc's GitHub",
+                href: "https://github.com/sviosdi/docP12",
               },
             ],
           },

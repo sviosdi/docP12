@@ -3,3 +3,136 @@ sidebar_position: 3
 ---
 
 # The TimeChart component
+
+## The main dimensions
+
+![The TimeChart geometry](/img/TimeChart.png)
+
+## Preparing the plotting of the curve
+
+### The scaling functions on both axes
+
+We provide vertical margins `paddingH` and some horizontal margins `paddingTop` and `paddingBottom` to display
+the captions. We then specify the geometric area on which the plot will occur : from `paddingH` to `timeW - paddingH` on the horizontal axis and from
+`component's height - paddingBottom` to `paddingTop` on the vertical axis.
+
+We also specify the data range on each axis. We will not take the minimum value and the maximum value of the time for such a domain,
+because the polynomial interpolation can exceed this amplitude. We will slightly increase this amplitude.
+
+Now that the geometry area and data amplitudes are defined, d3 can return the scaling function for both axes.
+
+```javascript
+// Prepare the plot of the curve
+// Scale the x-axis
+const xScale = d3
+  .scaleLinear()
+  .domain([daysRange.min, daysRange.max]) // domain([1,7]) 1: Lundi 7: Dimanche
+  // spreads the days [1..7] across the width of the component with a margin of
+  // paddingH pixels
+  .range([paddingH, timeW - paddingH]);
+// Scale the y-axis
+const yScale = d3
+  .scaleLinear()
+  .domain([
+    // timesAmp * 0.15 = an additional upper space provided to compensate for the
+    // overshoot of the of the interpolation on the amplitude of the data
+    sessionsRange.min - timesAmp * 0.15,
+    // timesAmp * 0.1 = the additional bottom space
+    sessionsRange.max + timesAmp * 0.1,
+  ])
+  // margins paddingBottom and paddingTop are provided to display captions
+  .range([timeW * 1.0194 - paddingBottom, paddingTop]); // margins are provided to
+// display captions
+```
+
+### The `line()` function to create the curve with the data
+
+The final plotting of the curve will be done by `line(times)` where `times` is the data passed to be plotted :
+`times.day` will be the data used for the x-axis and `times.sessionLength` the one for the y-axis.
+
+We must first pass to this `line()` function the functions `x()` and `y()` which will calculate the coordinates of the points
+extracted from the data using the scale functions. This coordonnates will be computed in the red axes. (`x`: upper-left corner to
+the right and `y`: upper-left corner to the bottom) We will take advantage of these calculation functions to save an array of the
+coordinates of the points representing the data because we will need them later to display these points when approaching the mouse hover
+
+And finally we specify the type of interpolation desired : in our case we chose `d3.curveNatural`.
+
+```javascript
+let plots = []
+for (let i in times) plots.push({})
+
+ ...
+
+const line = d3
+  .line()
+  .x((d, i) => {
+    let x = xScale(d.day);
+    plots[i].x = x;
+    return x;
+  })
+  .y((d, i) => {
+    let y = yScale(d.sessionLength);
+    plots[i].y = y;
+    return y;
+  })
+  .curve(d3.curveNatural);
+```
+
+### The plotting
+
+Now that all is prepared, we can plot the curve from the data :
+
+```javascript
+d3.select("#times-curve")
+  .append("path")
+  .attr("d", line(times))
+  .attr("fill", "none")
+  .attr("stroke", "white");
+```
+
+## Displaying the tooltip with time and the spot on the curve
+
+We start by covering all our elements with an `svg` element intended to receive mouse events
+
+```javascript
+const gForMouse = d3
+  .select(ref.current.firstElementChild)
+  .append("svg")
+  .attr("id", "gForMouse")
+  .style("position", "absolute")
+  .style("top", 0)
+  .attr("width", timeW)
+  .attr("height", timeW * 1.0194)
+  .style("font-size", timeW * 0.0581);
+```
+
+Next, we will associate a handler with the `mousemove` event which will calculate the current index of the day-zone hovered by the mouse to be able to
+retrieve the coordinates of the corresponding point and display the tooltip and the spot on the curve.
+
+```javascript
+    .on('mousemove', (e) => {
+        const w = (timeW - 2 * paddingH) / (times.length - 1) // The width of each day-zone
+        const dw = paddingH + w / 2 // The starting-zone
+        // Compute the index of the current zone (hovered by the mouse)
+        if (e.offsetX < dw) {
+            idx = 0
+        } else {
+            if (e.offsetX < timeW)
+                idx = Math.trunc((e.offsetX - dw) / w) + 1
+        }
+        if (idx !== oldIdx) { // The index has changed, we have moved to another zone
+            oldIdx = idx
+            // Compute the x-coordinate of the tooltip and display it
+            let px = idx === 0 ? 3 : paddingH + (idx - 1 / 2) * w
+            if (idx === times.length - 1) px = timeW * 0.82
+            // Fill the tooltip with the current time, position the tooltip and make it visible
+            tipLabel.text(`${times[idx].sessionLength} min`)
+            tip.style('left', px)
+            tip.style('top', plots[idx].y - timeW * 0.13)
+            tip.style('opacity', 1)
+            // Position the spot with the registrated plots coordinates and display it
+            spot.attr('cx', plots[idx].x)
+            spot.attr('cy', plots[idx].y).style('opacity', 1)
+        }
+    })
+```
