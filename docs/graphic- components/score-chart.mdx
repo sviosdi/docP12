@@ -3,3 +3,43 @@ sidebar_position: 5
 ---
 
 # The ScoreChart component
+
+![The ScoreChart](/img/ScoreChart.png)
+
+In this component, all text was positioned as html elements. **d3** was used just for drawing the circular arcs.
+
+```javascript
+const draw = () => {
+  var svg = d3
+    .select(ref.current)
+    .append("svg")
+    .style("position", "absolute")
+    .attr("top", 0)
+    .attr("left", 0)
+    .attr("width", scoreW)
+    .attr("height", scoreW * 1.0194)
+    .append("g")
+    .attr("transform", "translate(" + scoreW / 2 + "," + scoreW / 2 + ")");
+
+  var arc_glob = d3
+    .arc()
+    .innerRadius(scoreW * 0.3)
+    .outerRadius(scoreW * 0.3 + scoreW * 0.05)
+    .startAngle(0)
+    .endAngle(2 * Math.PI);
+  svg
+    .append("path")
+    .attr("d", arc_glob)
+    .attr("fill", "#e0e0e0")
+    .attr("stroke", "#d5d5d5");
+
+  var arc = d3
+    .arc()
+    .cornerRadius(scoreW * 0.022)
+    .innerRadius(scoreW * 0.3)
+    .outerRadius(scoreW * 0.3 + scoreW * 0.05)
+    .startAngle(0)
+    .endAngle(-(2 * score) * Math.PI);
+  svg.append("path").attr("d", arc).attr("fill", "#f60000");
+};
+```

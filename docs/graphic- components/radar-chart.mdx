@@ -101,3 +101,51 @@ const radarLine = () => {
   )}Z`;
 };
 ```
+
+### Label positioning
+
+![Label positioning](/img/labels.png)
+
+We can associate with each red anchor of a label a reference point of the trigonometric circle of coordinates `(ref.x, ref.y)` in the frame centered on the polygon.
+
+- If `ref.x = 1` the label is the label is as far right as possible.
+- If `ref.x = -1` the label is the label is as far left as possible.
+- If `ref.y = 1` the label is the label is as far top as possible.
+- If `ref.y = -1` the label is the label is as far down as possible.
+
+The more `ref.x` decreases from 1 to -1, the more the label moves from right to the left, the more the postioning blue point is horizontally far from the red anchor point. This
+distance varies from `0` to `lbl_width`.
+
+The more `ref.y` decreases from 1 to -1, the more the label moves from top to bottom, the more the postioning blue point is vertically far from the red anchor point. This
+distance varies from `0` to `lbl_heigth`.
+
+So we will compute these horizontal and vertical distances between the red point and blue point in such a way that they grow uniformly from `0` to `lbl_width` and `lbl_height` respectively.
+
+```javascript
+RadarChart.radarGridPointsRef.forEach((ref, i) => {
+  // We first get the label width and height
+  const fontSize = radarW * 0.045;
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+  context.font = fontSize + "px " + "Roboto";
+  const text = toFrench[RadarChart.radarLablels[i]]
+    ? toFrench[RadarChart.radarLablels[i]]
+    : RadarChart.radarLablels[i];
+  const lbl_width = context.measureText(text).width;
+  const lbl_height = fontSize;
+  // Next, we calculate the coordinates (sx, sy) of the red anchor in  in the frame formed
+  // by the axes : upper-left corner to the right and upper-left corner to the bottom
+  const sx = radarW / 2 + Rmax * 1.1 * ref.x;
+  const sy = radarW / 2 - Rmax * 1.1 * ref.y;
+  // Then we compute frame the coordinate in the same of the blue positioning point of the label
+  let lbl_x = sx - (lbl_width * (1 - RadarChart.radarGridPointsRef[i].x)) / 2;
+  let lbl_y = sy + (lbl_height * (1 - RadarChart.radarGridPointsRef[i].y)) / 2;
+
+  labels
+    .append("text")
+    .attr("x", lbl_x)
+    .attr("y", lbl_y)
+    .style("font-size", fontSize)
+    .text(text);
+});
+```

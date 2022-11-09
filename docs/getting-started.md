@@ -62,7 +62,7 @@ or you can build it in production mode with
 yarn build
 ```
 
-and run it with
+and run it in production mode with
 
 ```shell
 yarn run preview
