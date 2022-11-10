@@ -66,7 +66,7 @@ const config = {
             label: "Documentation",
           },
           {
-            href: "https://euuekp-3001.preview.csb.app/jsdocs",
+            href: "https://euuekp-3001.preview.csb.app/jsdocs/",
             label: "Project JSDoc",
             position: "right",
           },
@@ -89,7 +89,7 @@ const config = {
               },
               {
                 label: "Project JSDoc",
-                href: "https://euuekp-3001.preview.csb.app/jsdocs",
+                href: "https://euuekp-3001.preview.csb.app/jsdocs/",
               },
             ],
           },
