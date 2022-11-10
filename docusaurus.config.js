@@ -84,8 +84,8 @@ const config = {
             title: "Docs",
             items: [
               {
-                label: "Graphical component documentation",
-                to: "/docs/category/graphic-components",
+                label: "Documentation for the developer",
+                to: "/docs/category/documentation-for-the-developer",
               },
               {
                 label: "Project JSDoc",
