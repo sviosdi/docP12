@@ -61,9 +61,14 @@ const config = {
             label: "Getting Started",
           },
           {
-            href: "/docs/category/graphic-components",
+            href: "/docs/category/documentation-for-the-developer",
             position: "left",
             label: "Documentation",
+          },
+          {
+            href: "http://localhost:3000/jsdocs",
+            label: "Project JSDoc",
+            position: "right",
           },
           {
             href: "https://github.com/sviosdi/P12",
@@ -81,6 +86,10 @@ const config = {
               {
                 label: "Graphical component documentation",
                 to: "/docs/category/graphic-components",
+              },
+              {
+                label: "Project JSDoc",
+                href: "http://localhost:3000/jsdocs/",
               },
             ],
           },

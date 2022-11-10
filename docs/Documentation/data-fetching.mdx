@@ -1,0 +1,65 @@
+---
+sidebar_position: 3
+---
+
+# The data fetching mechanism
+
+## Defining the browser router
+
+We define a `loader()` function to fetch the data as follows. The first parameter `params` will be obtained from the `loader` field in the path description of the browser router.
+I will hold the user `id`. The second parameter is the `api` used to fetch the user data. This `api` can be the default constructed `api` used to fetch the data from the local mocked data file, or
+it can be the `api` constructed with a remote (or local) url service that can be queried to get the user data.
+
+This `loader()` function will retrieve all the data and return an object whose fields are the different user data needed to draw the different graphical components.
+If only one of these data could not be retrieved we throw an exception with a `404 response`, that will redirect to the `errorElement` field in the path description of the browser router.
+
+```javascript
+const loader = async ({ params }, api) => {
+  const user = await api.getUserData(Number.parseInt(params.id));
+  const activities = await api.getUserActivity(Number.parseInt(params.id));
+  const times = await api.getTimes(Number.parseInt(params.id));
+  const perf = await api.getPerformances(Number.parseInt(params.id));
+
+  if (!user || !activities || !times || !perf)
+    throw new Response("page not found", {
+      status: 404,
+      statusText: "Page non trouvée : identifiant utilisateur incorrect",
+    });
+  else return { user, activities, times, perf };
+};
+```
+
+Next we define a browser router as following below. The root path `\` will be redirected to the `\12` path to display the dashboard of the user with identifier 12.
+The thow other paths will retrieve the user data either from an api url service either from the local mocked data file.
+
+```javascript
+const router = createBrowserRouter([
+  {
+    path: "/",
+    loader: async () => {
+      return redirect("/12");
+    },
+    element: null,
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: "/:id",
+    loader: async ({ params }) =>
+      loader({ params }, new API("https://bz0bje-3000.preview.csb.app")),
+    //loader({ params }, new API('http://localhost:3000')),
+    element: <Homepage />,
+    errorElement: <ErrorPage />,
+  },
+  {
+    path: "/mocked/:id",
+    loader: async ({ params }) => loader({ params }, new API()),
+    element: <Homepage />,
+    errorElement: <ErrorPage />,
+  },
+]);
+```
+
+## Using the browser router
+
+In the `Dashboard` component whe get all the needed data with `const { user, activities, times, perf } = useLoaderData()` where the `useLoaderData()` will
+execute our `loader()` function described above.
